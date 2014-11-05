@@ -1,0 +1,9 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+
+AddSrc(YeGuangSrc
+${CMAKE_CURRENT_LIST_DIR}/ShareMemoryQueue.cpp
+${CMAKE_CURRENT_LIST_DIR}/ShareMemoryQueue.h
+${CMAKE_CURRENT_LIST_DIR}/ShareMemoryManager.cpp
+${CMAKE_CURRENT_LIST_DIR}/ShareMemoryManager.h)
+
+AddHDir(${CMAKE_CURRENT_LIST_DIR})
