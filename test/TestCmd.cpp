@@ -143,8 +143,8 @@ int main(int argc, char *argv[]){
 
     client.init("test", "10.192.1.192");
 
-    client.setRecvCB(net_recv, (void*)server_fd);
-    client.setSendCB(net_send, (void*)server_fd);
+    client.setRecvCB(net_recv, (void*)&server_fd);
+    client.setSendCB(net_send, (void*)&server_fd);
 
     ret = client.handshake();
 
