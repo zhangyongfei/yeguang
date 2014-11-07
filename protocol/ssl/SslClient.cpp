@@ -15,7 +15,7 @@ SslClient::~SslClient(){
 
 }
 
-int SslClient::init(std::string custom, std::string svrName, 
+int SslClient::init(std::string custom, std::string commonName, 
 	                std::string crtFile, 
 	                std::string keyFile,
 	                std::string caFile){
@@ -104,7 +104,7 @@ int SslClient::init(std::string custom, std::string svrName,
     /* OPTIONAL is not optimal for security,
      * but makes interop easier in this simplified example */
     ssl_set_authmode( &ssl, SSL_VERIFY_OPTIONAL );
-    ssl_set_ca_chain( &ssl, &cacert, NULL, svrName.c_str() );
+    ssl_set_ca_chain( &ssl, &cacert, NULL, commonName.c_str() );
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctrDrbg );
     ssl_set_dbg( &ssl, sslDebug, this );
@@ -120,6 +120,7 @@ int SslClient::exit(){
 
 int SslClient::handshake(){
 	int ret;
+	
 	while( ( ret = ssl_handshake( &ssl ) ) != 0 )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )

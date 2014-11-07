@@ -17,7 +17,7 @@ public:
 	SslClient();
 	~SslClient();
 
-	int init(std::string custom, std::string svrName,
+	int init(std::string custom, std::string commonName,
 		    std::string crtFile = "none", 
             std::string keyFile = "none",
             std::string caFile  = "");

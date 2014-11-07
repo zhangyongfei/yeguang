@@ -141,7 +141,7 @@ int main(int argc, char *argv[]){
 
     SslClient client;
 
-    client.init("test", "10.192.1.192");
+    client.init("test", "localhost");
 
     client.setRecvCB(net_recv, (void*)&server_fd);
     client.setSendCB(net_send, (void*)&server_fd);
@@ -192,7 +192,7 @@ int main(int argc, char *argv[]){
         }
 
         len = ret;
-        printf( " %d bytes read\n\n%s", len, (char *) buf );
+        printf( " %d bytes read\n\n%s\n\n", len, (char *) buf );
     }
     while( 1 );
 
