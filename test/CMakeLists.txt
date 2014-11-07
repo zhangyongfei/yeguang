@@ -5,6 +5,7 @@ ${CMAKE_CURRENT_LIST_DIR}/TestCmd.cpp)
 
 AddLibs(cmdlibs
 yeguang
-log4cplus)
+log4cplus
+polarssl)
 
 AppPrj(testcmd tcmdSrc cmdlibs)

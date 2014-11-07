@@ -4,6 +4,8 @@
 #include "ShareMemoryManager.h"
 #include "Logger4.h"
 #include "Log.h"
+#include "polarssl/net.h"
+#include "SslClient.h"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -123,14 +125,83 @@ private:
     bool stop;
 };
 
+#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
+
 int main(int argc, char *argv[]){
+
+    int ret = 0, server_fd = -1;
+    unsigned char buf[8192];
+
+    if( ( ret = net_connect( &server_fd, "10.192.1.192",
+                                         4433 ) ) != 0 )
+    {
+        printf( " failed\n  ! net_connect returned %d\n\n", ret );
+        return -1;
+    }
+
+    SslClient client;
+
+    client.init("test", "10.192.1.192");
+
+    client.setRecvCB(net_recv, (void*)server_fd);
+    client.setSendCB(net_send, (void*)server_fd);
+
+    ret = client.handshake();
+
+    if (ret != 0)
+    {
+        printf( " failed\n  ! handshake returned %d\n\n", ret );
+        return -1;
+    }
+
+    int len = sprintf( (char *) buf, GET_REQUEST );
+
+    while( ( ret = client.write( buf, len ) ) <= 0 )
+    {
+        if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+        {
+            printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+            return -1;
+        }
+    }
+
+    len = ret;
+
+     do
+    {
+        len = sizeof( buf ) - 1;
+        memset( buf, 0, sizeof( buf ) );
+        ret = client.read( buf, len );
+
+        if( ret == POLARSSL_ERR_NET_WANT_READ || ret == POLARSSL_ERR_NET_WANT_WRITE )
+            continue;
+
+        if( ret == POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY )
+            break;
+
+        if( ret < 0 )
+        {
+            printf( "failed\n  ! ssl_read returned %d\n\n", ret );
+            break;
+        }
+
+        if( ret == 0 )
+        {
+            printf( "\n\nEOF\n\n" );
+            break;
+        }
+
+        len = ret;
+        printf( " %d bytes read\n\n%s", len, (char *) buf );
+    }
+    while( 1 );
 
     //yeguang::Log::CreateLog(new yeguang::Logger4("./log4cplus.properties"));
     //LogDebug("-------FromChild");
 
-    MyCmdParse cmdparse;
+    //MyCmdParse cmdparse;
 
-    cmdparse.Parse(argc, argv);
+    //cmdparse.Parse(argc, argv);
 
     //yeguang::ConfigParse config;
 
