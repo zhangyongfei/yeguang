@@ -1,5 +1,7 @@
 #include "SslClient.h"
 
+namespace yeguang{
+
 SslClient::SslClient(){
     debugCB = NULL;
     debugContext = NULL;
@@ -16,9 +18,9 @@ SslClient::~SslClient(){
 }
 
 int SslClient::init(std::string custom, std::string commonName, 
-	                std::string crtFile, 
-	                std::string keyFile,
-	                std::string caFile){
+                    std::string crtFile, 
+                    std::string keyFile,
+                    std::string caFile){
 
     int ret = 0;
 
@@ -42,57 +44,57 @@ int SslClient::init(std::string custom, std::string commonName,
      * 1.1. Load the trusted CA
      */
     if( caFile.length() ){
-    	if( caFile == "none" ){
+        if( caFile == "none" ){
             ret = 0;
-    	}
+        }
         else{
             ret = x509_crt_parse_path( &cacert, caFile.c_str() );
         }
     } else{
-    	ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_list,
+        ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_list,
                               strlen( test_ca_list ) );
     }
 
     if(ret != 0){
-    	return -1;
+        return -1;
     }
 
-	/*
+    /*
      * 1.2. Load own certificate and private key
      *
      * (can be skipped if client authentication is not required)
      */
     if( crtFile.length() ){
-    	if( crtFile == "none" ){
+        if( crtFile == "none" ){
             ret = 0;
-    	} else {
+        } else {
             ret = x509_crt_parse_file( &clicert, crtFile.c_str() );
-    	}
+        }
     } else {
         ret = x509_crt_parse( &clicert, (const unsigned char *) test_cli_crt,
                 strlen( test_cli_crt ) );
     }
 
     if(ret != 0){
-    	return -1;
+        return -1;
     }
 
     if( keyFile.length() ) {
-    	if( keyFile == "none" ){
+        if( keyFile == "none" ){
             ret = 0;
-    	} else {
+        } else {
             ret = pk_parse_keyfile( &pkey, keyFile.c_str(), "" );
-    	}
+        }
     } else {
         ret = pk_parse_key( &pkey, (const unsigned char *) test_cli_key,
                 strlen( test_cli_key ), NULL, 0 );
     }
 
     if(ret != 0){
-    	return -1;
+        return -1;
     }
 
-	/*
+    /*
      * 2. Setup stuff
      */        
     if( ( ret = ssl_init( &ssl ) ) != 0 )
@@ -115,13 +117,23 @@ int SslClient::init(std::string custom, std::string commonName,
 }
 
 int SslClient::exit(){
+
+    ssl_close_notify( &ssl );
+
+    x509_crt_free( &cacert );
+    ssl_free( &ssl );
+    ctr_drbg_free( &ctr_drbg );
+    entropy_free( &entropy );
+
+    memset( &ssl, 0, sizeof( ssl ) );
+
     return 0;
 }
 
 int SslClient::handshake(){
-	int ret;
-	
-	while( ( ret = ssl_handshake( &ssl ) ) != 0 )
+    int ret;
+    
+    while( ( ret = ssl_handshake( &ssl ) ) != 0 )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
@@ -129,26 +141,30 @@ int SslClient::handshake(){
         }
     }
 
+    return ret;
+}
+
+int SslClient::getVerifyResult(){
     return ssl_get_verify_result( &ssl );
 }
 
 int SslClient::write(const unsigned char *buf, size_t len){
-	return ssl_write( &ssl, buf, len );
+    return ssl_write( &ssl, buf, len );
 }
 
 int SslClient::read(unsigned char *buf, size_t len){
-	return ssl_read( &ssl, buf, len );
+    return ssl_read( &ssl, buf, len );
 }
 
 void SslClient::sslDebug( void *ctx, int level, const char *str ){
 
     if (ctx != NULL)
     {
-    	SslClient *pthis = (SslClient *)ctx;
-    	/* code */
-    	if(pthis->debugCB != NULL){
-    		pthis->debugCB(pthis->debugContext, level, str);
-    	}
+        SslClient *pthis = (SslClient *)ctx;
+        /* code */
+        if(pthis->debugCB != NULL){
+            pthis->debugCB(pthis->debugContext, level, str);
+        }
     }
 }
 
@@ -164,18 +180,18 @@ int SslClient::sslRecv( void *ctx, unsigned char *buf, size_t len ){
 
     if (ctx != NULL)
     {
-    	/* code */
-    	SslClient *pthis = (SslClient *)ctx;
+        /* code */
+        SslClient *pthis = (SslClient *)ctx;
 
         if (pthis->recvCB != NULL)
         {
-        	/* code */
-        	ret = pthis->recvCB(pthis->recvContext, buf, len);
+            /* code */
+            ret = pthis->recvCB(pthis->recvContext, buf, len);
         } else {
-        	ret = len;
+            ret = len;
         }
     } else {
-    	ret = len;
+        ret = len;
     }
 
     if( ret != POLARSSL_ERR_NET_WANT_READ )
@@ -196,18 +212,18 @@ int SslClient::sslSend( void *ctx, const unsigned char *buf, size_t len ){
 
     if (ctx != NULL)
     {
-    	/* code */
-    	SslClient *pthis = (SslClient *)ctx;
+        /* code */
+        SslClient *pthis = (SslClient *)ctx;
 
         if (pthis->sendCB != NULL)
         {
-        	/* code */
-        	ret = pthis->sendCB(pthis->sendContext, buf, len);
+            /* code */
+            ret = pthis->sendCB(pthis->sendContext, buf, len);
         } else {
-        	ret = len;
+            ret = len;
         }
     } else {
-    	ret = len;
+        ret = len;
     }
 
     if( ret != POLARSSL_ERR_NET_WANT_WRITE )
@@ -222,11 +238,13 @@ void SslClient::setDebugCB(LPSslDebugCB debugCB, void* context) {
 }
 
 void SslClient::setRecvCB(LPSslRecvCB recvCB, void* context) {
-	this->recvCB = recvCB;
+    this->recvCB = recvCB;
     this->recvContext = context;
 }
 
 void SslClient::setSendCB(LPSslSendCB sendCB, void* context) {
-	this->sendCB = sendCB;
-	this->sendContext = context;
+    this->sendCB = sendCB;
+    this->sendContext = context;
+}
+
 }

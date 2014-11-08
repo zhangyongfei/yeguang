@@ -7,6 +7,7 @@
 #include "polarssl/certs.h"
 
 
+namespace yeguang{
 typedef void (*LPSslDebugCB)(void* lpvoid, int level, std::string content);
 typedef int (*LPSslRecvCB)(void* lpvoid, unsigned char *buf, size_t len);
 typedef int (*LPSslSendCB)(void* lpvoid, const unsigned char *buf, size_t len);
@@ -14,19 +15,19 @@ typedef int (*LPSslSendCB)(void* lpvoid, const unsigned char *buf, size_t len);
 class SslClient
 {
 public:
-	SslClient();
-	~SslClient();
+    SslClient();
+    ~SslClient();
 
-	int init(std::string custom, std::string commonName,
-		    std::string crtFile = "none", 
+    int init(std::string custom, std::string commonName,
+            std::string crtFile = "none", 
             std::string keyFile = "none",
             std::string caFile  = "");
 
     int exit();
     
-	void setRecvCB(LPSslRecvCB recvCB, void* context);
+    void setRecvCB(LPSslRecvCB recvCB, void* context);
 
-	void setSendCB(LPSslSendCB recvCB, void* context);
+    void setSendCB(LPSslSendCB recvCB, void* context);
 
     void setDebugCB(LPSslDebugCB debugCB, void *context);
 
@@ -39,14 +40,14 @@ public:
     int read(unsigned char *buf, size_t len);
 
 protected:
-	static void sslDebug( void *ctx, int level, const char *str );
+    static void sslDebug( void *ctx, int level, const char *str );
 
-	static int sslRecv( void *ctx, unsigned char *buf, size_t len );
+    static int sslRecv( void *ctx, unsigned char *buf, size_t len );
 
-	static int sslSend( void *ctx, const unsigned char *buf, size_t len );
+    static int sslSend( void *ctx, const unsigned char *buf, size_t len );
 
 private:
-	entropy_context entropy;
+    entropy_context entropy;
     ctr_drbg_context ctrDrbg;
     x509_crt cacert;
     ssl_context ssl;
@@ -62,5 +63,6 @@ private:
     LPSslSendCB  sendCB;
     void*        sendContext;
 };
+}
 
 #endif

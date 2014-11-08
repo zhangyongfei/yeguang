@@ -127,19 +127,18 @@ private:
 
 #define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
 
-int main(int argc, char *argv[]){
-
+int sslClient(){
     int ret = 0, server_fd = -1;
     unsigned char buf[8192];
 
-    if( ( ret = net_connect( &server_fd, "10.192.1.192",
+    if( ( ret = net_connect( &server_fd, "192.168.2.100",
                                          4433 ) ) != 0 )
     {
         printf( " failed\n  ! net_connect returned %d\n\n", ret );
         return -1;
     }
 
-    SslClient client;
+    yeguang::SslClient client;
 
     client.init("test", "localhost");
 
@@ -151,6 +150,14 @@ int main(int argc, char *argv[]){
     if (ret != 0)
     {
         printf( " failed\n  ! handshake returned %d\n\n", ret );
+        return -1;
+    }
+
+    ret = client.getVerifyResult();
+
+    if (ret != 0)
+    {
+         printf( " failed\n  ! handshake returned %d\n\n", ret );
         return -1;
     }
 
@@ -193,8 +200,12 @@ int main(int argc, char *argv[]){
 
         len = ret;
         printf( " %d bytes read\n\n%s\n\n", len, (char *) buf );
-    }
-    while( 1 );
+    }while( 1 );
+}
+
+int main(int argc, char *argv[]){
+
+    
 
     //yeguang::Log::CreateLog(new yeguang::Logger4("./log4cplus.properties"));
     //LogDebug("-------FromChild");
