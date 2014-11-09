@@ -122,7 +122,7 @@ int SslClient::exit(){
 
     x509_crt_free( &cacert );
     ssl_free( &ssl );
-    ctr_drbg_free( &ctr_drbg );
+    ctr_drbg_free( &ctrDrbg );
     entropy_free( &entropy );
 
     memset( &ssl, 0, sizeof( ssl ) );
@@ -232,17 +232,17 @@ int SslClient::sslSend( void *ctx, const unsigned char *buf, size_t len ){
     return( ret );
 }
 
-void SslClient::setDebugCB(LPSslDebugCB debugCB, void* context) {
+void SslClient::setDebugCB(LPSslCDebugCB debugCB, void* context) {
     this->debugCB = debugCB;
     this->debugContext = context;
 }
 
-void SslClient::setRecvCB(LPSslRecvCB recvCB, void* context) {
+void SslClient::setRecvCB(LPSslCRecvCB recvCB, void* context) {
     this->recvCB = recvCB;
     this->recvContext = context;
 }
 
-void SslClient::setSendCB(LPSslSendCB sendCB, void* context) {
+void SslClient::setSendCB(LPSslCSendCB sendCB, void* context) {
     this->sendCB = sendCB;
     this->sendContext = context;
 }

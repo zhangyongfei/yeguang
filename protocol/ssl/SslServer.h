@@ -1,40 +1,38 @@
-#ifndef SSL_CLIENT
-#define SSL_CLIENT
+#ifndef SSL_SERVER
+#define SSL_SERVER
 #include <string>
 #include "polarssl/entropy.h"
 #include "polarssl/ctr_drbg.h"
 #include "polarssl/ssl.h"
 #include "polarssl/certs.h"
+#include "polarssl/ssl_cache.h"
 
+typedef void (*LPSslSDebugCB)(void* lpvoid, int level, std::string content);
+typedef int (*LPSslSRecvCB)(void* lpvoid, unsigned char *buf, size_t len);
+typedef int (*LPSslSSendCB)(void* lpvoid, const unsigned char *buf, size_t len);
 
-namespace yeguang{
-typedef void (*LPSslCDebugCB)(void* lpvoid, int level, std::string content);
-typedef int (*LPSslCRecvCB)(void* lpvoid, unsigned char *buf, size_t len);
-typedef int (*LPSslCSendCB)(void* lpvoid, const unsigned char *buf, size_t len);
-
-class SslClient
-{
+class SslServer{
 public:
-    SslClient();
-    ~SslClient();
+	SslServer();
+	~SslServer();
 
-    int init(std::string custom, std::string commonName,
+	int init(std::string custom, std::string commonName,
             std::string crtFile = "none", 
             std::string keyFile = "none",
             std::string caFile  = "");
 
-    int exit();
+	int exit();
+
+	int handshake();
+
+	int closeSession();
+
+	void setRecvCB(LPSslSRecvCB recvCB, void* context);
+
+    void setSendCB(LPSslSSendCB recvCB, void* context);
+
+    void setDebugCB(LPSslSDebugCB debugCB, void *context);
     
-    void setRecvCB(LPSslCRecvCB recvCB, void* context);
-
-    void setSendCB(LPSslCSendCB recvCB, void* context);
-
-    void setDebugCB(LPSslCDebugCB debugCB, void *context);
-
-    int handshake();
-
-    int getVerifyResult();
-
     int write(const unsigned char *buf, size_t len);
 
     int read(unsigned char *buf, size_t len);
@@ -51,18 +49,18 @@ private:
     ctr_drbg_context ctrDrbg;
     x509_crt cacert;
     ssl_context ssl;
-    x509_crt clicert;
+    x509_crt srvcert;
     pk_context pkey;
+    ssl_cache_context cache;
 
-    LPSslCDebugCB debugCB;
+    LPSslSDebugCB debugCB;
     void*        debugContext;
 
-    LPSslCRecvCB  recvCB;
+    LPSslSRecvCB  recvCB;
     void*        recvContext;
 
-    LPSslCSendCB  sendCB;
-    void*        sendContext;
+    LPSslSSendCB  sendCB;
+    void*        sendContext;	
 };
-}
 
 #endif

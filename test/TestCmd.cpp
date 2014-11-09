@@ -6,6 +6,7 @@
 #include "Log.h"
 #include "polarssl/net.h"
 #include "SslClient.h"
+#include "SslServer.h"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -203,9 +204,112 @@ int sslClient(){
     }while( 1 );
 }
 
+#define HTTP_RESPONSE \
+    "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" \
+    "<h2>PolarSSL Test Server</h2>\r\n" \
+    "<p>Successful connection using: %s</p>\r\n"
+
+int sslServer(){
+    int ret = 0, listen_fd = 0;
+
+    if( ( ret = net_bind( &listen_fd, NULL, 5544 ) ) != 0 )
+    {
+        printf( " failed\n  ! net_bind returned %d\n\n", ret );
+        return -1;
+    }
+
+    SslServer server;
+
+    server.init("test", "localhost");
+
+    while(1){
+        int client_fd = -1, len = 0;
+        unsigned char buf[4096] = {0};
+
+        if( ( ret = net_accept( listen_fd, &client_fd, NULL ) ) != 0 )
+        {
+            break;
+        }
+
+        server.setRecvCB(net_recv, (void*)&client_fd);
+        server.setSendCB(net_send, (void*)&client_fd);
+
+        if (server.handshake() != 0)
+        {
+            continue;
+        }
+
+        do
+        {
+            len = sizeof( buf ) - 1;
+            memset( buf, 0, sizeof( buf ) );
+            ret = server.read( &buf[0], len );
+
+            if( ret == POLARSSL_ERR_NET_WANT_READ || ret == POLARSSL_ERR_NET_WANT_WRITE )
+                continue;
+
+            if( ret <= 0 )
+            {
+                switch( ret )
+                {
+                    case POLARSSL_ERR_SSL_PEER_CLOSE_NOTIFY:
+                        printf( " connection was closed gracefully\n" );
+                        break;
+
+                    case POLARSSL_ERR_NET_CONN_RESET:
+                        printf( " connection was reset by peer\n" );
+                        break;
+
+                    default:
+                        printf( " ssl_read returned -0x%x\n", -ret );
+                        break;
+                }
+
+                break;
+            }
+
+            len = ret;
+            printf( " %d bytes read\n\n%s", len, (char *) buf );
+
+            if( ret > 0 )
+                break;
+        }while( 1 );
+
+        len = sprintf( (char *) buf, HTTP_RESPONSE,
+                   "Successful" );
+
+        while( ( ret = server.write( buf, len ) ) <= 0 )
+        {
+            if( ret == POLARSSL_ERR_NET_CONN_RESET )
+            {
+                printf( " failed\n  ! peer closed the connection\n\n" );
+                continue;
+            }
+
+            if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
+            {
+                printf( " failed\n  ! ssl_write returned %d\n\n", ret );
+                return -1;
+            }
+        }
+
+        len = ret;
+        printf( " %d bytes written\n\n%s\n", len, (char *) buf );
+
+        printf( "  . Closing the connection..." );
+
+        server.closeSession();
+
+        printf( " ok\n" );
+
+        ret = 0;
+    }
+
+}
+
 int main(int argc, char *argv[]){
 
-    
+    sslServer();
 
     //yeguang::Log::CreateLog(new yeguang::Logger4("./log4cplus.properties"));
     //LogDebug("-------FromChild");
