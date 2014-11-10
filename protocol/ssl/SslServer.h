@@ -17,8 +17,8 @@ public:
 	~SslServer();
 
 	int init(std::string custom, std::string commonName,
-            std::string crtFile = "none", 
-            std::string keyFile = "none",
+            std::string crtFile = "", 
+            std::string keyFile = "",
             std::string caFile  = "");
 
 	int exit();

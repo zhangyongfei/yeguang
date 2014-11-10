@@ -24,9 +24,9 @@ int SslServer::init(std::string custom, std::string commonName,
     
     int ret = 0;
     
-    debug_set_threshold(100);
+    //debug_set_threshold(100);
 
-    //x509_crt_init( &cacert );
+    x509_crt_init( &cacert );
     ssl_cache_init( &cache );
     x509_crt_init( &srvcert );
     pk_init( &pkey );
@@ -42,9 +42,10 @@ int SslServer::init(std::string custom, std::string commonName,
     /*
      * 1.1 Load the certificates and private RSA key
      */
-    /*if( caFile.length() ){
+    if( caFile.length() ){
         if( caFile == "none" ){
-            ret = 0;
+            ret = x509_crt_parse( &cacert, (const unsigned char *) test_ca_list,
+                              strlen( test_ca_list ) );
         }
         else{
             ret = x509_crt_parse_path( &cacert, caFile.c_str() );
@@ -56,14 +57,15 @@ int SslServer::init(std::string custom, std::string commonName,
 
     if(ret != 0){
         return -1;
-    }*/
+    }
 
     /*
      * 1.2. Load own certificate and private key
      */
     if( crtFile.length() ){
         if( crtFile == "none" ){
-            ret = 0;
+            ret = x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
+                strlen( test_srv_crt ) );
         } else {
             ret = x509_crt_parse_file( &srvcert, crtFile.c_str() );
         }
@@ -73,20 +75,17 @@ int SslServer::init(std::string custom, std::string commonName,
     }
 
     if(ret != 0){
-        printf("x509_crt_parse error 0\n");
         return -1;
     }
 
-    ret = x509_crt_parse( &srvcert, (const unsigned char *) test_ca_list,
-                          strlen( test_ca_list ) );
     if( ret != 0 ){
-        printf("x509_crt_parse error 1\n");
         return -1;
     }
 
     if( keyFile.length() ) {
         if( keyFile == "none" ){
-            ret = 0;
+            ret = pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
+                strlen( test_srv_key ), NULL, 0 );
         } else {
             ret = pk_parse_keyfile( &pkey, keyFile.c_str(), "" );
         }
@@ -96,7 +95,6 @@ int SslServer::init(std::string custom, std::string commonName,
     }
 
     if( ret != 0 ){
-        printf("pk_parse_key error\n");
         return -1;
     }
 
@@ -117,7 +115,8 @@ int SslServer::init(std::string custom, std::string commonName,
     ssl_set_session_cache( &ssl, ssl_cache_get, &cache,
                                  ssl_cache_set, &cache );
 
-    ssl_set_ca_chain( &ssl, srvcert.next, NULL, NULL );
+    ssl_set_ca_chain( &ssl, &cacert, NULL, NULL );
+
     if( ( ret = ssl_set_own_cert( &ssl, &srvcert, &pkey ) ) != 0 )
     {
         return -1;
@@ -134,7 +133,7 @@ int SslServer::exit(){
 
     ssl_close_notify( &ssl );
 
-    //x509_crt_free( &cacert );
+    x509_crt_free( &cacert );
     ssl_free( &ssl );
     ctr_drbg_free( &ctrDrbg );
     entropy_free( &entropy );
@@ -152,16 +151,8 @@ int SslServer::handshake(){
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
         	ssl_session_reset( &ssl );
-            char buffer[1024] = {0};
-            polarssl_strerror(ret, buffer, sizeof(buffer));
-            printf("%s\n", buffer);
             return ret;
         }
-
-        printf("handshake ret:%d\n", ret);
-        char buffer[1024] = {0};
-        polarssl_strerror(ret, buffer, sizeof(buffer));
-        printf("%s\n", buffer);
     }
 
     return ret;
@@ -216,8 +207,6 @@ int SslServer::sslRecv( void *ctx, unsigned char *buf, size_t len ){
         return( POLARSSL_ERR_NET_WANT_READ );
     }
 
-    printf("sslRecv\n");
-
     if (ctx != NULL)
     {
         /* code */
@@ -268,8 +257,6 @@ int SslServer::sslSend( void *ctx, const unsigned char *buf, size_t len ){
 
     if( ret != POLARSSL_ERR_NET_WANT_WRITE )
         first_try = 1; /* Next call will be a new operation */
-
-    printf("sslSend:%d\n", ret);
 
     return( ret );
 }

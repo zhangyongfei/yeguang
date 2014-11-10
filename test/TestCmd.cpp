@@ -307,6 +307,10 @@ int sslServer(){
 
         printf( " ok\n" );
 
+        if(client_fd != -1){
+            net_close( client_fd );
+        }
+
         ret = 0;
     }
 
