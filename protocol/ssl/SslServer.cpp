@@ -1,7 +1,16 @@
 #include "SslServer.h"
+#include "polarssl/error.h"
+#include "polarssl/debug.h"
 
 SslServer::SslServer(){
+    debugCB = NULL;
+    debugContext = NULL;
 
+    sendCB = NULL;
+    sendContext = NULL;
+
+    recvCB = NULL;
+    recvContext = NULL;
 }
 
 SslServer::~SslServer(){
@@ -15,6 +24,9 @@ int SslServer::init(std::string custom, std::string commonName,
     
     int ret = 0;
     
+    debug_set_threshold(100);
+
+    //x509_crt_init( &cacert );
     ssl_cache_init( &cache );
     x509_crt_init( &srvcert );
     pk_init( &pkey );
@@ -30,7 +42,7 @@ int SslServer::init(std::string custom, std::string commonName,
     /*
      * 1.1 Load the certificates and private RSA key
      */
-    if( caFile.length() ){
+    /*if( caFile.length() ){
         if( caFile == "none" ){
             ret = 0;
         }
@@ -44,7 +56,7 @@ int SslServer::init(std::string custom, std::string commonName,
 
     if(ret != 0){
         return -1;
-    }
+    }*/
 
     /*
      * 1.2. Load own certificate and private key
@@ -56,11 +68,19 @@ int SslServer::init(std::string custom, std::string commonName,
             ret = x509_crt_parse_file( &srvcert, crtFile.c_str() );
         }
     } else {
-        ret = x509_crt_parse( &srvcert, (const unsigned char *) test_cli_crt,
-                strlen( test_cli_crt ) );
+        ret = x509_crt_parse( &srvcert, (const unsigned char *) test_srv_crt,
+                strlen( test_srv_crt ) );
     }
 
     if(ret != 0){
+        printf("x509_crt_parse error 0\n");
+        return -1;
+    }
+
+    ret = x509_crt_parse( &srvcert, (const unsigned char *) test_ca_list,
+                          strlen( test_ca_list ) );
+    if( ret != 0 ){
+        printf("x509_crt_parse error 1\n");
         return -1;
     }
 
@@ -71,8 +91,13 @@ int SslServer::init(std::string custom, std::string commonName,
             ret = pk_parse_keyfile( &pkey, keyFile.c_str(), "" );
         }
     } else {
-        ret = pk_parse_key( &pkey, (const unsigned char *) test_cli_key,
-                strlen( test_cli_key ), NULL, 0 );
+        ret = pk_parse_key( &pkey, (const unsigned char *) test_srv_key,
+                strlen( test_srv_key ), NULL, 0 );
+    }
+
+    if( ret != 0 ){
+        printf("pk_parse_key error\n");
+        return -1;
     }
 
     /*
@@ -87,7 +112,7 @@ int SslServer::init(std::string custom, std::string commonName,
     ssl_set_authmode( &ssl, SSL_VERIFY_NONE );
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctrDrbg );
-    ssl_set_dbg( &ssl, sslDebug, stdout );
+    ssl_set_dbg( &ssl, sslDebug, this );
 
     ssl_set_session_cache( &ssl, ssl_cache_get, &cache,
                                  ssl_cache_set, &cache );
@@ -109,7 +134,7 @@ int SslServer::exit(){
 
     ssl_close_notify( &ssl );
 
-    x509_crt_free( &cacert );
+    //x509_crt_free( &cacert );
     ssl_free( &ssl );
     ctr_drbg_free( &ctrDrbg );
     entropy_free( &entropy );
@@ -120,15 +145,23 @@ int SslServer::exit(){
 }
 
 int SslServer::handshake(){
-    int ret;
+    int ret = 0;
     
     while( ( ret = ssl_handshake( &ssl ) ) != 0 )
     {
         if( ret != POLARSSL_ERR_NET_WANT_READ && ret != POLARSSL_ERR_NET_WANT_WRITE )
         {
         	ssl_session_reset( &ssl );
+            char buffer[1024] = {0};
+            polarssl_strerror(ret, buffer, sizeof(buffer));
+            printf("%s\n", buffer);
             return ret;
         }
+
+        printf("handshake ret:%d\n", ret);
+        char buffer[1024] = {0};
+        polarssl_strerror(ret, buffer, sizeof(buffer));
+        printf("%s\n", buffer);
     }
 
     return ret;
@@ -163,6 +196,8 @@ void SslServer::sslDebug( void *ctx, int level, const char *str ){
 
     if (ctx != NULL)
     {
+        printf("%s", str);
+
         SslServer *pthis = (SslServer *)ctx;
         /* code */
         if(pthis->debugCB != NULL){
@@ -180,6 +215,8 @@ int SslServer::sslRecv( void *ctx, unsigned char *buf, size_t len ){
         first_try = 0;
         return( POLARSSL_ERR_NET_WANT_READ );
     }
+
+    printf("sslRecv\n");
 
     if (ctx != NULL)
     {
@@ -232,6 +269,8 @@ int SslServer::sslSend( void *ctx, const unsigned char *buf, size_t len ){
     if( ret != POLARSSL_ERR_NET_WANT_WRITE )
         first_try = 1; /* Next call will be a new operation */
 
+    printf("sslSend:%d\n", ret);
+
     return( ret );
 }
 
@@ -240,7 +279,7 @@ void SslServer::setRecvCB(LPSslSRecvCB recvCB, void* context){
     this->recvContext = context;
 }
 
-void SslServer::setSendCB(LPSslSSendCB recvCB, void* context){
+void SslServer::setSendCB(LPSslSSendCB sendCB, void* context){
     this->sendCB = sendCB;
     this->sendContext = context;
 }

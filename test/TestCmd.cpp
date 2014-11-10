@@ -19,11 +19,11 @@ public:
         start = false;
         stop = false;
 
-        cmd_list.push_back(TCommand('s', false, "启动进程"));
-        cmd_list.push_back(TCommand('d', false, "打开调试模式"));
-        cmd_list.push_back(TCommand('k', true,  "向进程发送信号"));
-        cmd_list.push_back(TCommand('c', true,  "配置文件路径"));
-        cmd_list.push_back(TCommand('u', false, "停止进程"));
+        cmd_list.push_back(TCommand('s', false, "???ˉ??3ì"));
+        cmd_list.push_back(TCommand('d', false, "′ò?aμ÷ê??￡ê?"));
+        cmd_list.push_back(TCommand('k', true,  "?ò??3ì·￠?íD?o?"));
+        cmd_list.push_back(TCommand('c', true,  "???????t?·??"));
+        cmd_list.push_back(TCommand('u', false, "í￡?1??3ì"));
 
         SetCmdList(cmd_list);
 
@@ -231,13 +231,18 @@ int sslServer(){
             break;
         }
 
+        printf("收到客服端连接\n");
+
         server.setRecvCB(net_recv, (void*)&client_fd);
         server.setSendCB(net_send, (void*)&client_fd);
 
-        if (server.handshake() != 0)
+        if ((ret = server.handshake()) != 0)
         {
+            printf( " failed\n  ! handshake returned 0x%X\n\n", ret );
             continue;
         }
+
+        printf("握手成功\n");
 
         do
         {
