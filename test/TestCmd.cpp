@@ -4,9 +4,9 @@
 #include "ShareMemoryManager.h"
 #include "Logger4.h"
 #include "Log.h"
-#include "polarssl/net.h"
-#include "SslClient.h"
-#include "SslServer.h"
+//#include "polarssl/net.h"
+//#include "SslClient.h"
+//#include "SslServer.h"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -127,7 +127,7 @@ private:
 };
 
 #define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
-
+/*
 int sslClient(){
     int ret = 0, server_fd = -1;
     unsigned char buf[8192];
@@ -314,11 +314,11 @@ int sslServer(){
         ret = 0;
     }
 
-}
+}*/
 
 int main(int argc, char *argv[]){
 
-    sslServer();
+    //sslServer();
 
     //yeguang::Log::CreateLog(new yeguang::Logger4("./log4cplus.properties"));
     //LogDebug("-------FromChild");

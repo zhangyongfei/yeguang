@@ -1,5 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR}/deps/log4cplus-1.2.0-rc3/include)
+include(${CMAKE_CURRENT_LIST_DIR}/deps/log4cplus-1.2.0-rc3/CMakeLists.txt)
+
 AddSrc(YeGuangSrc
 ${CMAKE_CURRENT_LIST_DIR}/Log.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Log.h

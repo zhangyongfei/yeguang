@@ -8,7 +8,7 @@ include(./daemon/CMakeLists.txt)
 include(./logger/CMakeLists.txt)
 include(./ipc/CMakeLists.txt)
 include(./test/CMakeLists.txt)
-include(./protocol/CMakeLists.txt)
+#include(./protocol/CMakeLists.txt)
 
 StaticLib(yeguang YeGuangSrc)
 

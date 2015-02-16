@@ -1,0 +1,86 @@
+src/liblog4cplus_la-tls.lo: src/tls.cxx \
+  include/log4cplus/thread/impl/tls.h include/log4cplus/config.hxx \
+  include/log4cplus/config/defines.hxx \
+  include/log4cplus/helpers/thread-config.h /usr/include/c++/4.3/new \
+  /usr/include/c++/4.3/cstddef \
+  /usr/include/c++/4.3/x86_64-suse-linux/bits/c++config.h \
+  /usr/include/bits/wordsize.h \
+  /usr/include/c++/4.3/x86_64-suse-linux/bits/os_defines.h \
+  /usr/include/features.h /usr/include/sys/cdefs.h \
+  /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
+  /usr/include/c++/4.3/x86_64-suse-linux/bits/cpu_defines.h \
+  /usr/lib64/gcc/x86_64-suse-linux/4.3/include/stddef.h \
+  /usr/include/c++/4.3/exception /usr/include/c++/4.3/cassert \
+  /usr/include/assert.h /usr/include/pthread.h /usr/include/endian.h \
+  /usr/include/bits/endian.h /usr/include/bits/byteswap.h \
+  /usr/include/sched.h /usr/include/bits/types.h \
+  /usr/include/bits/typesizes.h /usr/include/time.h \
+  /usr/include/bits/sched.h /usr/include/bits/time.h \
+  /usr/include/xlocale.h /usr/include/signal.h /usr/include/bits/sigset.h \
+  /usr/include/bits/pthreadtypes.h /usr/include/bits/setjmp.h
+
+include/log4cplus/thread/impl/tls.h:
+
+include/log4cplus/config.hxx:
+
+include/log4cplus/config/defines.hxx:
+
+include/log4cplus/helpers/thread-config.h:
+
+/usr/include/c++/4.3/new:
+
+/usr/include/c++/4.3/cstddef:
+
+/usr/include/c++/4.3/x86_64-suse-linux/bits/c++config.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/c++/4.3/x86_64-suse-linux/bits/os_defines.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/usr/include/c++/4.3/x86_64-suse-linux/bits/cpu_defines.h:
+
+/usr/lib64/gcc/x86_64-suse-linux/4.3/include/stddef.h:
+
+/usr/include/c++/4.3/exception:
+
+/usr/include/c++/4.3/cassert:
+
+/usr/include/assert.h:
+
+/usr/include/pthread.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/endian.h:
+
+/usr/include/bits/byteswap.h:
+
+/usr/include/sched.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/typesizes.h:
+
+/usr/include/time.h:
+
+/usr/include/bits/sched.h:
+
+/usr/include/bits/time.h:
+
+/usr/include/xlocale.h:
+
+/usr/include/signal.h:
+
+/usr/include/bits/sigset.h:
+
+/usr/include/bits/pthreadtypes.h:
+
+/usr/include/bits/setjmp.h:
